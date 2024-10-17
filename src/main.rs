@@ -1,5 +1,11 @@
+use dotenv::dotenv;
+
 mod broker;
+mod email;
+mod tg;
 
 fn main() {
-    broker::start()
+    dotenv().ok();
+
+    broker::start();
 }

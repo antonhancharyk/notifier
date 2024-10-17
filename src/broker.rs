@@ -3,7 +3,8 @@ use lapin::message::Delivery;
 use lapin::{options::*, types::FieldTable, Connection, ConnectionProperties};
 use tokio;
 
-//     // let my_env_var = env::var("MY_ENV_VAR").expect("MY_ENV_VAR not found");
+use crate::email;
+use crate::tg;
 
 #[tokio::main]
 pub async fn start() {
@@ -56,6 +57,9 @@ async fn handle_message(channel: lapin::Channel, delivery: Delivery) {
     let body = String::from_utf8_lossy(&delivery.data);
 
     println!("Received message: {}", body);
+
+    tg::send(body.to_string()).await;
+    email::send(body.to_string()).await;
 
     channel
         .basic_ack(delivery.delivery_tag, BasicAckOptions::default())
