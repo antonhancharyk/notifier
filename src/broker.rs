@@ -1,17 +1,9 @@
 use futures::stream::StreamExt;
 use lapin::{message::Delivery, options::*, types::FieldTable, Connection, ConnectionProperties};
-use std::collections::HashSet;
-use std::sync::Arc;
 use tokio;
-use tokio::sync::Mutex;
 
 use crate::email;
 use crate::tg;
-
-struct MyStruct {
-    tg_set: Arc<Mutex<HashSet<i64>>>,
-    email_set: Arc<Mutex<HashSet<i64>>>,
-}
 
 #[tokio::main]
 pub async fn start() {
@@ -21,117 +13,102 @@ pub async fn start() {
         .await
         .expect("Failed to connect to RabbitMQ");
 
-    let channel1 = conn
+    let tg_channel = conn
         .create_channel()
         .await
-        .expect("Failed to create channel 1");
-    let channel2 = conn
+        .expect("Failed to create tg channel");
+    let email_channel = conn
         .create_channel()
         .await
-        .expect("Failed to create channel 2");
+        .expect("Failed to create email channel");
 
-    let _queue1 = channel1
+    tg_channel
         .queue_declare(
-            "test_queue_1",
+            "tg_queue",
             QueueDeclareOptions::default(),
             FieldTable::default(),
         )
         .await
-        .expect("Failed to declare queue 1");
+        .expect("Failed to declare tg queue");
 
-    let _queue2 = channel2
+    email_channel
         .queue_declare(
-            "test_queue_2",
+            "email_queue",
             QueueDeclareOptions::default(),
             FieldTable::default(),
         )
         .await
-        .expect("Failed to declare queue 2");
+        .expect("Failed to declare email queue");
 
-    let shared_data = Arc::new(MyStruct {
-        tg_set: Arc::new(Mutex::new(HashSet::new())),
-        email_set: Arc::new(Mutex::new(HashSet::new())),
-    });
-
-    let consumer1_handle = {
-        let shared_data = Arc::clone(&shared_data);
-        let mut consumer1 = channel1
+    let tg_consumer_handle = {
+        let mut tg_consumer = tg_channel
             .basic_consume(
-                "test_queue_1",
-                "my_consumer_1",
+                "tg_queue",
+                "tg_consumer",
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
             .await
-            .expect("Failed to start consumer 1");
+            .expect("Failed to start tg consumer");
 
         tokio::spawn(async move {
-            while let Some(delivery_result) = consumer1.next().await {
+            while let Some(delivery_result) = tg_consumer.next().await {
                 match delivery_result {
                     Ok(delivery) => {
-                        handle_tg_message(shared_data.clone(), delivery).await;
+                        handle_tg_message(delivery).await;
                     }
-                    Err(error) => eprintln!("Error receiving message from queue 1: {:?}", error),
+                    Err(error) => eprintln!("Error receiving message from tg queue: {:?}", error),
                 }
             }
         })
     };
 
-    let consumer2_handle = {
-        let shared_data = Arc::clone(&shared_data);
-        let mut consumer2 = channel2
+    let email_consumer_handle = {
+        let mut email_consumer = email_channel
             .basic_consume(
-                "test_queue_2",
-                "my_consumer_2",
+                "email_queue",
+                "email_consumer",
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
             .await
-            .expect("Failed to start consumer 2");
+            .expect("Failed to start email consumer");
 
         tokio::spawn(async move {
-            while let Some(delivery_result) = consumer2.next().await {
+            while let Some(delivery_result) = email_consumer.next().await {
                 match delivery_result {
                     Ok(delivery) => {
-                        handle_email_message(shared_data.clone(), delivery).await;
+                        handle_email_message(delivery).await;
                     }
-                    Err(error) => eprintln!("Error receiving message from queue 2: {:?}", error),
+                    Err(error) => {
+                        eprintln!("Error receiving message from email queue: {:?}", error)
+                    }
                 }
             }
         })
     };
 
-    _ = tokio::join!(consumer1_handle, consumer2_handle);
+    _ = tokio::join!(tg_consumer_handle, email_consumer_handle);
 }
 
-async fn handle_tg_message(shared_data: Arc<MyStruct>, delivery: Delivery) {
+async fn handle_tg_message(delivery: Delivery) {
     let body = String::from_utf8_lossy(&delivery.data);
 
-    {
-        let mut tg_set = shared_data.tg_set.lock().await;
-        tg_set.insert(body.len() as i64);
-    }
-
-    _ = tg::send("body".to_string());
+    _ = tg::send(body.to_string());
 
     delivery
         .ack(BasicAckOptions::default())
         .await
-        .expect("Failed to acknowledge message from queue 1 (Telegram)");
+        .expect("Failed to acknowledge message from tg queue");
 }
 
-async fn handle_email_message(shared_data: Arc<MyStruct>, delivery: Delivery) {
+async fn handle_email_message(delivery: Delivery) {
     let body = String::from_utf8_lossy(&delivery.data);
-
-    {
-        let mut email_set = shared_data.email_set.lock().await;
-        email_set.insert(body.len() as i64);
-    }
 
     email::send(body.to_string()).await;
 
     delivery
         .ack(BasicAckOptions::default())
         .await
-        .expect("Failed to acknowledge message from queue 2 (Email)");
+        .expect("Failed to acknowledge message from email queue");
 }
