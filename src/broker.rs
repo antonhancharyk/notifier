@@ -94,7 +94,7 @@ pub async fn start() {
 async fn handle_tg_message(delivery: Delivery) {
     let body = String::from_utf8_lossy(&delivery.data);
 
-    _ = tg::send(body.to_string());
+    tg::send(body.to_string()).await;
 
     delivery
         .ack(BasicAckOptions::default())
