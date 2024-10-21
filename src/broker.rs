@@ -23,17 +23,13 @@ pub async fn start() {
         .expect("Failed to create email channel");
 
     tg_channel
-        .queue_declare(
-            "tg_queue",
-            QueueDeclareOptions::default(),
-            FieldTable::default(),
-        )
+        .queue_declare("tg", QueueDeclareOptions::default(), FieldTable::default())
         .await
         .expect("Failed to declare tg queue");
 
     email_channel
         .queue_declare(
-            "email_queue",
+            "email",
             QueueDeclareOptions::default(),
             FieldTable::default(),
         )
@@ -43,8 +39,8 @@ pub async fn start() {
     let tg_consumer_handle = {
         let mut tg_consumer = tg_channel
             .basic_consume(
-                "tg_queue",
-                "tg_consumer",
+                "tg",
+                "tg",
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
@@ -66,8 +62,8 @@ pub async fn start() {
     let email_consumer_handle = {
         let mut email_consumer = email_channel
             .basic_consume(
-                "email_queue",
-                "email_consumer",
+                "email",
+                "email",
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
