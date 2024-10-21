@@ -3,7 +3,6 @@ use lettre::{Message, SmtpTransport, Transport};
 use std::env;
 
 pub async fn send(body: String) {
-    println!("Email");
     let from_mail: &str = &env::var("FROM_MAIL").unwrap();
     let host_mail: String = env::var("HOST_MAIL").unwrap();
     let password_mail: String = env::var("PASSWORD_MAIL").unwrap();
@@ -26,7 +25,7 @@ pub async fn send(body: String) {
         .credentials(creds)
         .build();
 
-    _ = mailer.send(&email_data);
+    mailer.send(&email_data).unwrap();
 
     // for email in emails {
     //     let email_data = Message::builder()
