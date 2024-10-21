@@ -3,7 +3,7 @@ use lettre::{Message, SmtpTransport, Transport};
 use std::env;
 
 pub async fn send(body: String) {
-    println!("Email")
+    println!("Email");
     let from_mail: &str = &env::var("FROM_MAIL").unwrap();
     let host_mail: String = env::var("HOST_MAIL").unwrap();
     let password_mail: String = env::var("PASSWORD_MAIL").unwrap();
