@@ -10,8 +10,8 @@ pub async fn send(body: String) {
 
     let parsed_json: Value = serde_json::from_str(&body).unwrap();
 
-    let subject = parsed_json["subject"].to_string();
-    let msg = parsed_json["msg"].to_string();
+    let subject = parsed_json["subject"].as_str().unwrap_or("").to_string();
+    let msg = parsed_json["msg"].as_str().unwrap_or("").to_string();
 
     let emails = ["ant.goncharik.development@gmail.com"];
 
