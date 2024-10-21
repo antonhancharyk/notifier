@@ -88,6 +88,8 @@ pub async fn start() {
         })
     };
 
+    println!("Hello");
+
     _ = tokio::join!(tg_consumer_handle, email_consumer_handle);
 }
 
