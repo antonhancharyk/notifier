@@ -21,7 +21,7 @@ pub async fn send(body: String) {
         let email_data = Message::builder()
             .from(from_mail.parse().unwrap())
             .to(email.parse().unwrap())
-            .subject(subject.clone())
+            .subject(&subject.clone())
             .body(msg.clone())
             .unwrap();
 
