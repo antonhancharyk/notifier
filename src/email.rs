@@ -11,37 +11,21 @@ pub async fn send(body: String) {
 
     let value = Credentials::new(from_mail.to_string(), password_mail);
 
-    let email_data = Message::builder()
-        .from(from_mail.parse().unwrap())
-        .to(emails[0].parse().unwrap())
-        .subject("Message from RabbitMQ")
-        .body(body.clone())
-        .unwrap();
+    for email in emails {
+        let email_data = Message::builder()
+            .from(from_mail.parse().unwrap())
+            .to(email.parse().unwrap())
+            .subject("Message from RabbitMQ")
+            .body(body.clone())
+            .unwrap();
 
-    let creds = value.clone();
+        let creds = value.clone();
 
-    let mailer = SmtpTransport::relay(&host_mail)
-        .unwrap()
-        .credentials(creds)
-        .build();
+        let mailer = SmtpTransport::relay(&host_mail)
+            .unwrap()
+            .credentials(creds)
+            .build();
 
-    mailer.send(&email_data).unwrap();
-
-    // for email in emails {
-    //     let email_data = Message::builder()
-    //         .from(from_mail.parse().unwrap())
-    //         .to(email.parse().unwrap())
-    //         .subject("Message from RabbitMQ")
-    //         .body(body.clone())
-    //         .unwrap();
-
-    //     let creds = value.clone();
-
-    //     let mailer = SmtpTransport::relay(&host_mail)
-    //         .unwrap()
-    //         .credentials(creds)
-    //         .build();
-
-    //     _ = mailer.send(&email_data);
-    // }
+        _ = mailer.send(&email_data);
+    }
 }
