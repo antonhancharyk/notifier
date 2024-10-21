@@ -41,4 +41,4 @@ jobs:
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
             # docker run -d --restart=always -e FROM_MAIL=${{ secrets.FROM_MAIL }} -e PASSWORD_MAIL=${{ secrets.PASSWORD_MAIL }} -e HOST_MAIL=${{ secrets.HOST_MAIL }} -e TELOXIDE_TOKEN=${{ secrets.TELOXIDE_TOKEN }} -e BROKER_URI=${{ secrets.BROKER_URI }} --name ${{ env.CONTAINER_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            docker run -d --restart=always -e FROM_MAIL=${{ secrets.FROM_MAIL }} -e PASSWORD_MAIL=${{ secrets.PASSWORD_MAIL }} --name ${{ env.CONTAINER_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            docker run -d --restart=always -e FROM_MAIL=${{ secrets.FROM_MAIL }} -e PASSWORD_MAIL=${{ secrets.PASSWORD_MAIL }} -e HOST_MAIL=${{ secrets.HOST_MAIL }} --name ${{ env.CONTAINER_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
