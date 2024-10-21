@@ -8,7 +8,6 @@ pub async fn send(body: String) {
     let host_mail: String = env::var("HOST_MAIL").unwrap();
     let password_mail: String = env::var("PASSWORD_MAIL").unwrap();
 
-    println!("{}", &body);
     let parsed_json: Value = serde_json::from_str(&body).unwrap();
 
     let subject = parsed_json["subject"].to_string();
