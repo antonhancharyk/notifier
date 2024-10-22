@@ -13,7 +13,7 @@ pub async fn send(body: String) {
     let subject = parsed_json["subject"].as_str().unwrap_or("").to_string();
     let msg = parsed_json["msg"].as_str().unwrap_or("").to_string();
 
-    let emails = ["ant.goncharik.development@gmail.com"];
+    let emails = ["ant.goncharik.development@gmail.com", "bnncrmknt@gmail.com"];
 
     let value = Credentials::new(from_mail.to_string(), password_mail);
 
